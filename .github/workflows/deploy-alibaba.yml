@@ -48,7 +48,7 @@ jobs:
       - name: Copy main.py to GPU ECS
         uses: appleboy/scp-action@v0.1.7
         with:
-          host: ${{ vars.ALIBABA_WORKER_HOST }}
+          host: ${{ secrets.ALIBABA_WORKER_HOST }}
           username: ${{ secrets.ALIBABA_USER }}
           key: ${{ secrets.ALIBABA_SSH_KEY }}
           source: "alibaba/main.py"
@@ -58,7 +58,7 @@ jobs:
       - name: Restart roadblock-worker service
         uses: appleboy/ssh-action@v1
         with:
-          host: ${{ vars.ALIBABA_WORKER_HOST }}
+          host: ${{ secrets.ALIBABA_WORKER_HOST }}
           username: ${{ secrets.ALIBABA_USER }}
           key: ${{ secrets.ALIBABA_SSH_KEY }}
           script: |
