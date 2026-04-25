@@ -13,7 +13,7 @@ We operate a **dual-cloud architecture**:
 | Layer | Cloud Provider | Services | Responsibility |
 |---|---|---|---|
 | **Web Frontend & Data** | AWS | EC2, RDS, Redis | Hosts Next.js UI, transactional data, caching |
-| **AI Inference** | Alibaba Cloud | ECS, VPC, Ollama | Runs Qwen 2.5 7B LLM for real-time intent detection |
+| **AI Inference** | Alibaba Cloud | ECS, VPC, Ollama, AnalyticDB (PostgreSQL + fastann) | Runs Qwen 2.5 7B + managed vector DB for RAG-powered personalisation |
 
 **Why two clouds?** We deliberately separated the fast, reliable web tier (AWS) from the GPU-intensive AI inference tier (Alibaba Cloud). This is a real-world pattern called **workload-specific cloud selection** — using the best provider for each job instead of forcing everything onto one platform.
 
@@ -27,7 +27,7 @@ We operate a **dual-cloud architecture**:
 - **Specs**: 4 vCPU, 15 GiB RAM, 1x NVIDIA T4 GPU (15 GiB VRAM)
 - **Region/Zone**: `ap-southeast-1b` (Singapore)
 - **Billing**: PostPaid (Pay-As-You-Go)
-- **Purpose**: Hosts the Ollama inference server running Qwen 2.5 7B
+- **Purpose**: Hosts Ollama inference and FastAPI worker. Connects to managed AnalyticDB for vector storage.
 
 ### 2. Virtual Private Cloud (VPC)
 - **VPC ID**: `vpc-t4nv2zp41j3mxg9opsmk0`
@@ -44,8 +44,8 @@ We operate a **dual-cloud architecture**:
 - **Security Group ID**: `sg-t4n5t0fcr5bz53c6tfia`
 - **Rules**:
   - Port 22 (SSH) — admin access
-  - Port 8000 — originally planned for vLLM
-  - Port 11434 — Ollama API endpoint
+  - Port 8000 — FastAPI Worker (public API for AWS)
+  - Port 11434 — Ollama (internal; ideally should be restricted to localhost-only)
 - **Purpose**: Firewall controlling inbound access to the inference server.
 
 ### 5. Key Pair
@@ -54,11 +54,31 @@ We operate a **dual-cloud architecture**:
 
 ### 6. Ollama (Self-Hosted on ECS)
 - **Model**: `qwen2.5:7b`
-- **API Endpoint**: `http://47.237.195.58:11434`
+- **Internal URL**: `http://localhost:11434` (called only by the FastAPI worker)
 - **Endpoints**:
   - `/api/generate` — Ollama native API
   - `/v1/chat/completions` — OpenAI-compatible API
 - **Purpose**: Serves the Qwen LLM for intent detection, recommendation generation, and context understanding.
+
+### 7. FastAPI Worker (Self-Hosted on ECS)
+- **Public URL**: `http://47.237.195.58:8000`
+- **Systemd Service**: `roadblock-worker` (auto-starts on boot)
+- **Endpoints**:
+  - `POST /recommend` — Receives raw transaction, stores embedding, retrieves user history, returns recommendation
+  - `POST /feedback` — Stores accepted deal for future retrieval
+  - `GET /health` — Health check
+- **Auth**: Bearer token (`WORKER_API_KEY`)
+- **Purpose**: Public-facing API gateway. Handles embedding generation, vector DB retrieval, prompt building, and LLM calling.
+
+### 8. AnalyticDB for PostgreSQL (Managed Alibaba Cloud Service)
+- **Instance ID**: `gp-gs5z5ss81655h9ce1`
+- **Internal Endpoint**: `gp-gs5z5ss81655h9ce1-master.gpdbmaster.singapore.rds.aliyuncs.com`
+- **Port**: `5432`
+- **Database**: `roadblock_vector`
+- **Vector Engine**: `fastann` (Alibaba Cloud's native approximate-nearest-neighbor extension)
+- **Embedding Model**: `sentence-transformers/all-MiniLM-L6-v2` (384-dim vectors)
+- **Purpose**: Managed vector database that stores user transaction and deal-acceptance history as searchable vectors. Enables RAG-based personalisation at scale without fine-tuning.
+- **Why fastann over pgvector**: AnalyticDB uses Alibaba Cloud's proprietary `fastann` vector engine — optimized for distributed ANN search across segment nodes, not available in open-source PostgreSQL.
 
 ---
 
@@ -113,25 +133,41 @@ User makes transaction
 [AWS EC2] Next.js frontend receives transaction data
        |
        v
-[AWS EC2] API route formats context into LLM prompt
+[AWS EC2] API route sends raw transaction to Alibaba Cloud
        |
        v
-[Internet] HTTPS POST to Alibaba Cloud Ollama
+[Internet] HTTPS POST to FastAPI Worker (port 8000)
+       |
+       v
+[Alibaba Cloud ECS] FastAPI Worker:
+       |   1. Embeds transaction text
+       |   2. Stores in AnalyticDB vector DB
+       |   3. Retrieves top 5 relevant user memories
+       |   4. Builds prompt with transaction + history
        |
        v
 [Alibaba Cloud ECS] Ollama loads Qwen 2.5 7B into NVIDIA T4 GPU
        |
        v
-[Alibaba Cloud ECS] Model infers user intent (e.g., "travel", "dining habit")
+[Alibaba Cloud ECS] Model generates personalised recommendation
        |
        v
 [Internet] JSON response returns to AWS frontend
        |
        v
-[AWS EC2] Decision engine maps intent to miniapp
+[AWS EC2] Show deal to user (During / After payment)
        |
        v
-User sees relevant miniapp recommendation
+User accepts deal
+       |
+       v
+[AWS EC2] Sends feedback to Alibaba Cloud
+       |
+       v
+[Alibaba Cloud ECS] Stores accepted deal in AnalyticDB
+       |
+       v
+(Next transaction retrieves this memory for better recommendations)
 ```
 
 ---
@@ -154,8 +190,11 @@ We shifted from **token-based pricing** to **compute-based pricing**:
 
 ## Security & Privacy
 
-- **VPC Isolation**: The inference server lives in a private network. Only ports 22 (SSH) and 11434 (API) are exposed.
+- **VPC Isolation**: The inference server lives in a private network. Only ports 22 (SSH) and 8000 (FastAPI Worker) are exposed to the internet.
+- **Ollama is Internal**: Port 11434 is bound to localhost. The raw Ollama API is not directly reachable from the internet.
+- **Vector DB is Private**: AnalyticDB lives inside the VPC. Only the ECS instance can reach it via internal endpoint.
 - **Key-Based Auth**: No passwords; SSH access requires the `roadblock-key.pem` private key.
+- **API Key Protection**: The `/recommend` endpoint requires a Bearer token. The key is stored as an environment variable on the ECS instance, not in code.
 - **Data Residency**: Transaction data sent to the LLM never leaves Alibaba Cloud's Singapore region.
 - **No Third-Party API**: User behavior data is not sent to DashScope, OpenAI, or any external API provider.
 
@@ -163,26 +202,61 @@ We shifted from **token-based pricing** to **compute-based pricing**:
 
 ## API Reference
 
-### Native Ollama API
+### FastAPI Worker — Recommend
 ```bash
-curl http://47.237.195.58:11434/api/generate \
+curl http://47.237.195.58:8000/recommend \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer <WORKER_API_KEY>" \
   -d '{
-    "model": "qwen2.5:7b",
-    "prompt": "User just bought a flight ticket. What miniapps should we suggest?"
+    "user_id": "user_123",
+    "merchant": "Starbucks",
+    "category": "F&B",
+    "location": "Singapore",
+    "time": "2026-04-25T08:15:00Z",
+    "amount": 5.20
   }'
 ```
 
-### OpenAI-Compatible API
+**Response:**
+```json
+{
+  "intent": "daily coffee routine",
+  "timing": "during_payment",
+  "deal": {
+    "merchant": "Starbucks",
+    "description": "Earn 2x points on coffee before 9 AM",
+    "discount": "2x points"
+  },
+  "message": "User buys coffee consistently around 8 AM. Morning commute miniapp recommended."
+}
+```
+
+### FastAPI Worker — Feedback (Accepted Deal)
 ```bash
-curl http://47.237.195.58:11434/v1/chat/completions \
+curl http://47.237.195.58:8000/feedback \
   -H "Content-Type: application/json" \
+  -H "Authorization: Bearer <WORKER_API_KEY>" \
   -d '{
-    "model": "qwen2.5:7b",
-    "messages": [
-      {"role": "system", "content": "You are an intent detection engine."},
-      {"role": "user", "content": "Transaction: Starbucks, $5.20, 8:15 AM"}
-    ]
+    "user_id": "user_123",
+    "transaction_merchant": "Starbucks",
+    "deal_merchant": "Starbucks",
+    "deal_description": "Earn 2x points on coffee"
   }'
+```
+
+**Response:**
+```json
+{"status": "stored"}
+```
+
+### FastAPI Worker — Health Check
+```bash
+curl http://47.237.195.58:8000/health
+```
+
+**Response:**
+```json
+{"status": "ok", "model": "qwen2.5:7b", "vector_db": "connected"}
 ```
 
 ---
@@ -204,6 +278,21 @@ aliyun ecs StopInstance --InstanceId i-t4n0nrf0t6q3d88gkwil
 ssh -i roadblock-key.pem root@47.237.195.58 "systemctl status ollama"
 ```
 
+### Check FastAPI Worker Status
+```bash
+ssh -i roadblock-key.pem root@47.237.195.58 "systemctl status roadblock-worker"
+```
+
+### Check AnalyticDB Connection from ECS
+```bash
+ssh -i roadblock-key.pem root@47.237.195.58 "PGPASSWORD=RoadBlockDB2026! psql -h gp-gs5z5ss81655h9ce1-master.gpdbmaster.singapore.rds.aliyuncs.com -U roadblock -p 5432 -d roadblock_vector -c 'SELECT count(*) FROM user_memories;'"
+```
+
+### View Worker Logs
+```bash
+ssh -i roadblock-key.pem root@47.237.195.58 "journalctl -u roadblock-worker -f"
+```
+
 ### Model is Already Downloaded
 Qwen 2.5 7B (`~4.7 GB`) is pre-cached on the instance disk at `/usr/share/ollama/.ollama/models/`. First inference after a reboot takes ~30 seconds to load into GPU memory; subsequent inferences are instant.
 
@@ -211,4 +300,4 @@ Qwen 2.5 7B (`~4.7 GB`) is pre-cached on the instance disk at `/usr/share/ollama
 
 ## One-Line Summary
 
-We turned Alibaba Cloud's cheapest GPU instance into a private, self-hosted AI inference engine — running Qwen 2.5 7B inside our own VPC, at a fraction of managed API costs, with full data privacy and zero cold starts.
+We turned Alibaba Cloud's cheapest GPU instance into a memory-augmented AI inference engine — running Qwen 2.5 7B with AnalyticDB's fastann vector engine to retrieve user spending habits in real-time, enabling personalised recommendations without ever fine-tuning the model.
