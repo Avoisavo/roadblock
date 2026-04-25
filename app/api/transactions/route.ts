@@ -2,13 +2,13 @@ import pool from "@/lib/db";
 
 export async function POST(request: Request) {
   const body = await request.json();
-  const { userId, merchant, category, location, amount } = body;
+  const { userId, merchant, category, location, amount, latitude, longitude, paymentStatus } = body;
 
   const result = await pool.query(
-    `INSERT INTO transactions (user_id, merchant, category, location, amount)
-     VALUES ($1, $2, $3, $4, $5)
+    `INSERT INTO transactions (user_id, merchant, category, location, amount, latitude, longitude, payment_status)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
      RETURNING *`,
-    [userId, merchant, category, location, amount]
+    [userId, merchant, category, location, amount, latitude, longitude, paymentStatus || "completed"]
   );
 
   return Response.json({ transaction: result.rows[0] });

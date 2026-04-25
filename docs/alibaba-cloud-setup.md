@@ -5,9 +5,8 @@
 You are building the AI Worker API on Alibaba Cloud. The AWS side (Next.js + PostgreSQL) is already done. Your job is to:
 
 1. Receive transaction context from AWS via HTTP POST
-2. Generate embeddings for the transaction
-3. Call Qwen LLM for intent detection + deal matching
-4. Return the result back to AWS
+2. Call Qwen LLM for intent detection + deal matching
+3. Return multiple deal recommendations back to AWS
 
 ## Architecture
 
@@ -17,123 +16,245 @@ AWS (already done)                          Alibaba Cloud (your job)
 │ Next.js on EC2      │                    │  Worker API (FastAPI)        │
 │                     │  POST /recommend   │                              │
 │ /api/recommend ─────┼───────────────────►│  1. Receive transaction data │
-│                     │                    │  2. Generate embeddings      │
-│                     │   JSON response    │  3. Call Qwen LLM            │
-│                     │◄───────────────────┤  4. Return intent + deal     │
+│                     │                    │  2. Call Qwen LLM            │
+│                     │   JSON response    │  3. Return intent + deals    │
+│                     │◄───────────────────┤                              │
 └─────────────────────┘                    └──────────────────────────────┘
 ```
+
+---
+
+## Two Scenarios
+
+### Scenario 1: Dining (during_payment)
+
+User pays for dinner at KFC Pavilion. LLM recommends nearby food/drinks to enjoy RIGHT NOW.
+
+### Scenario 2: Travel (after_payment)
+
+User buys a flight ticket. LLM recommends travel deals to plan LATER (hotel, eSIM, transport).
+
+---
 
 ## What AWS Sends to You
 
 AWS will send a POST request to your endpoint with this JSON body:
 
+### Scenario 1 Example (Dining):
+
 ```json
 {
-  "merchant": "Sushi Zanmai",
+  "merchant": "KFC",
   "category": "dining",
-  "location": "Mid Valley Megamall",
+  "location": "Pavilion KL",
   "time": "2026-04-25T19:30:00.000Z",
-  "amount": 45.00,
-  "user_history": [
-    {
-      "merchant": "Llaollao",
-      "category": "dessert",
-      "location": "Mid Valley Megamall",
-      "amount": 15.00,
-      "created_at": "2026-04-20T20:00:00.000Z"
+  "amount": 25.90,
+  "latitude": 3.1488,
+  "longitude": 101.7131,
+  "payment_status": "completed",
+  "user_behavior": {
+    "total_transactions": 15,
+    "category_frequency": {
+      "dining": 8,
+      "dessert": 5,
+      "transport": 2
     },
-    {
-      "merchant": "Sushi Zanmai",
-      "category": "dining",
-      "location": "Mid Valley Megamall",
-      "amount": 42.00,
-      "created_at": "2026-04-15T19:15:00.000Z"
-    }
-  ]
+    "merchant_frequency": {
+      "KFC": 3,
+      "Tealive": 4,
+      "Llaollao": 2,
+      "Starbucks": 1
+    },
+    "recent_transactions": [
+      {
+        "merchant": "Tealive",
+        "category": "dessert",
+        "location": "Pavilion KL",
+        "amount": 12.90,
+        "latitude": 3.1488,
+        "longitude": 101.7131,
+        "payment_status": "completed",
+        "created_at": "2026-04-23T20:15:00.000Z"
+      },
+      {
+        "merchant": "KFC",
+        "category": "dining",
+        "location": "Pavilion KL",
+        "amount": 22.00,
+        "latitude": 3.1488,
+        "longitude": 101.7131,
+        "payment_status": "completed",
+        "created_at": "2026-04-20T19:00:00.000Z"
+      }
+    ]
+  }
 }
 ```
 
-## What You Must Return
-
-Your API must return this JSON format:
+### Scenario 2 Example (Travel):
 
 ```json
 {
-  "intent": "dessert_craving",
-  "timing": "during_payment",
-  "deal": {
-    "merchant": "Llaollao",
-    "description": "20% off any medium or large tub",
-    "discount": "20%",
-    "location": "Mid Valley Megamall, LG Floor"
-  },
-  "message": "Craving dessert? Here's 20% off Llaollao - just around the corner!"
+  "merchant": "AirAsia",
+  "category": "travel",
+  "location": "Online",
+  "time": "2026-04-25T14:00:00.000Z",
+  "amount": 450.00,
+  "latitude": null,
+  "longitude": null,
+  "payment_status": "completed",
+  "user_behavior": {
+    "total_transactions": 12,
+    "category_frequency": {
+      "travel": 3,
+      "dining": 6,
+      "transport": 3
+    },
+    "merchant_frequency": {
+      "AirAsia": 2,
+      "Grab": 3,
+      "Agoda": 1
+    },
+    "recent_transactions": [
+      {
+        "merchant": "AirAsia",
+        "category": "travel",
+        "location": "Online",
+        "amount": 380.00,
+        "latitude": null,
+        "longitude": null,
+        "payment_status": "completed",
+        "created_at": "2026-03-10T10:00:00.000Z"
+      }
+    ]
+  }
 }
 ```
 
-### Field Descriptions
+### Field Descriptions (Input)
 
 | Field | Type | Description |
 |---|---|---|
-| `intent` | string | What the user likely wants next (e.g. "dessert_craving", "travel_prep", "grocery_routine") |
-| `timing` | string | Either `"during_payment"` (impulse buys) or `"after_payment"` (needs thought) |
-| `deal` | object | The recommended deal — merchant name, description, discount, location |
-| `message` | string | User-facing message to display with the deal |
-
-### Timing Rules (from the README)
-
-- **during_payment**: Low-consideration, impulse-friendly deals. User is at the location. (e.g. dessert voucher while paying for dinner)
-- **after_payment**: High-consideration decisions that need thought. (e.g. hotel booking after buying a flight ticket)
+| `merchant` | string | Where the user is paying (e.g. "KFC", "AirAsia") |
+| `category` | string | Type of purchase: "dining", "travel", "transport", "groceries", "shopping", etc. |
+| `location` | string | Where the payment happened (e.g. "Pavilion KL", "Online") |
+| `time` | string | When the payment happened (ISO format) |
+| `amount` | float | How much they paid (in RM) |
+| `latitude` | float/null | GPS latitude (null if online purchase) |
+| `longitude` | float/null | GPS longitude (null if online purchase) |
+| `payment_status` | string | "completed" |
+| `user_behavior.total_transactions` | int | How many transactions this user has made |
+| `user_behavior.category_frequency` | object | How often the user buys in each category |
+| `user_behavior.merchant_frequency` | object | How often the user visits each merchant |
+| `user_behavior.recent_transactions` | array | Last 10 transactions with full details |
 
 ---
 
-## Step-by-Step Setup
+## What You Must Return
 
-### Step 1: Create Alibaba Cloud Account
+Your API must return **multiple deals** (up to 3) in this format:
 
-- Go to alibabacloud.com and create an account
-- Enable DashScope (Alibaba's AI API) at dashscope.console.aliyun.com
-- Get your DashScope API key
+### Scenario 1 Response (Dining → nearby food/drink deals):
 
-### Step 2: Choose Deployment Method
-
-**Option A: ECS Instance (Recommended for hackathon — simpler)**
-
-- Launch an ECS instance (ecs.t6-c1m1.large or similar)
-- Region: Pick one close to ap-southeast (e.g. Singapore or Malaysia)
-- OS: Ubuntu 22.04
-- Open ports: 22 (SSH), 8000 (API)
-
-**Option B: Function Compute (Serverless)**
-
-- No server to manage
-- Auto-scales
-- More complex to set up
-
-### Step 3: Build the Worker API
-
-SSH into your ECS instance and set up:
-
-```bash
-# Install Python
-sudo apt update && sudo apt install -y python3 python3-pip python3-venv
-
-# Create project
-mkdir -p /home/ubuntu/worker && cd /home/ubuntu/worker
-python3 -m venv venv
-source venv/bin/activate
-
-# Install dependencies
-pip install fastapi uvicorn requests
+```json
+{
+  "intent": "post_meal_drink",
+  "timing": "during_payment",
+  "deals": [
+    {
+      "merchant": "Tealive",
+      "description": "Buy 1 Free 1 on any large drink",
+      "discount": "Buy 1 Free 1",
+      "location": "Pavilion KL, Level 1",
+      "category": "beverage"
+    },
+    {
+      "merchant": "Baskin Robbins",
+      "description": "31% off double scoop ice cream",
+      "discount": "31% off",
+      "location": "Pavilion KL, Level G",
+      "category": "dessert"
+    },
+    {
+      "merchant": "Starbucks",
+      "description": "RM5 off any Frappuccino after 6pm",
+      "discount": "RM5 off",
+      "location": "Pavilion KL, Level 2",
+      "category": "beverage"
+    }
+  ],
+  "message": "Just finished your meal? Here are some treats nearby!"
+}
 ```
 
-Create the worker API file:
+### Scenario 2 Response (Travel → travel planning deals):
 
-```bash
-nano /home/ubuntu/worker/main.py
+```json
+{
+  "intent": "travel_preparation",
+  "timing": "after_payment",
+  "deals": [
+    {
+      "merchant": "Agoda",
+      "description": "Up to 40% off hotels at your destination",
+      "discount": "Up to 40% off",
+      "location": "Online",
+      "category": "hotel"
+    },
+    {
+      "merchant": "Klook",
+      "description": "eSIM data plan from RM15 - stay connected abroad",
+      "discount": "From RM15",
+      "location": "Online",
+      "category": "esim"
+    },
+    {
+      "merchant": "Grab",
+      "description": "Pre-book airport transfer at 20% off",
+      "discount": "20% off",
+      "location": "Destination airport",
+      "category": "transport"
+    }
+  ],
+  "message": "Planning your trip? Here are deals to get you sorted."
+}
 ```
 
-Paste this code:
+### Field Descriptions (Output)
+
+| Field | Type | Description |
+|---|---|---|
+| `intent` | string | What the user likely wants next (e.g. "post_meal_drink", "travel_preparation") |
+| `timing` | string | `"during_payment"` or `"after_payment"` |
+| `deals` | array | Array of 1-3 recommended deals |
+| `deals[].merchant` | string | The merchant offering the deal |
+| `deals[].description` | string | What the deal is |
+| `deals[].discount` | string | The discount amount/type |
+| `deals[].location` | string | Where to redeem (or "Online") |
+| `deals[].category` | string | Deal category (e.g. "beverage", "dessert", "hotel", "esim", "transport") |
+| `message` | string | Friendly user-facing message to show with the deals |
+
+### Timing Rules
+
+| Scenario | Timing | Why |
+|---|---|---|
+| Dining at a restaurant | `during_payment` | Impulse buy — user is at the location, show nearby treats NOW |
+| Buying groceries | `during_payment` | Routine purchase — show cashback/voucher NOW |
+| Flight ticket purchase | `after_payment` | Needs planning — hotel, eSIM, transport are big decisions |
+| Online shopping | `after_payment` | User is browsing, not at a physical location |
+
+### How to decide timing:
+
+- Look at `category` and `location`
+- If user is **physically at a location** (latitude/longitude present) + category is **dining/groceries/shopping** → `during_payment`
+- If category is **travel/online** or the purchase is **high-value** (>RM100) → `after_payment`
+- Use `user_behavior.category_frequency` to see what the user usually does after this type of purchase
+
+---
+
+## Updated Worker Code
+
+Update your `main.py` to handle the new format:
 
 ```python
 from fastapi import FastAPI, Header, HTTPException
@@ -147,7 +268,13 @@ app = FastAPI()
 DASHSCOPE_API_KEY = os.environ.get("DASHSCOPE_API_KEY")
 WORKER_API_KEY = os.environ.get("WORKER_API_KEY", "your-secret-key-here")
 
-# --- Request/Response Models ---
+# --- Request Model ---
+
+class UserBehavior(BaseModel):
+    total_transactions: int
+    category_frequency: dict
+    merchant_frequency: dict
+    recent_transactions: list
 
 class TransactionContext(BaseModel):
     merchant: str
@@ -155,13 +282,10 @@ class TransactionContext(BaseModel):
     location: str
     time: str
     amount: float
-    user_history: list
-
-class DealResponse(BaseModel):
-    intent: str
-    timing: str
-    deal: dict
-    message: str
+    latitude: float = None
+    longitude: float = None
+    payment_status: str = "completed"
+    user_behavior: UserBehavior
 
 # --- Main Endpoint ---
 
@@ -172,41 +296,46 @@ async def recommend(ctx: TransactionContext, authorization: str = Header(None)):
         raise HTTPException(status_code=401, detail="Unauthorized")
 
     # Build prompt for Qwen LLM
-    history_text = json.dumps(ctx.user_history[-10:], indent=2)
+    prompt = f"""You are an AI deal recommendation engine for TnG eWallet in Malaysia.
 
-    prompt = f"""You are an AI deal recommendation engine for TnG eWallet.
-
-Given this transaction:
+CURRENT TRANSACTION:
 - Merchant: {ctx.merchant}
 - Category: {ctx.category}
 - Location: {ctx.location}
 - Time: {ctx.time}
 - Amount: RM{ctx.amount}
+- GPS: lat={ctx.latitude}, lng={ctx.longitude}
 
-User's recent transaction history:
-{history_text}
+USER BEHAVIOR:
+- Total past transactions: {ctx.user_behavior.total_transactions}
+- Category frequency: {json.dumps(ctx.user_behavior.category_frequency)}
+- Merchant frequency: {json.dumps(ctx.user_behavior.merchant_frequency)}
+- Recent transactions: {json.dumps(ctx.user_behavior.recent_transactions[-5:], indent=2)}
 
-Based on the transaction context and user history, determine:
-1. What the user likely needs next (intent)
-2. Whether to show a deal DURING payment or AFTER payment:
-   - DURING: impulse-friendly, low-consideration, user is at location (e.g. dessert after dinner)
-   - AFTER: needs thought, high-consideration (e.g. hotel after flight booking)
-3. The best matching deal to recommend
+RULES:
+1. If the user is dining/shopping at a physical location → timing = "during_payment", recommend nearby food/drinks/desserts (up to 3 deals)
+2. If the user is booking travel (flights, etc.) → timing = "after_payment", recommend travel deals like hotels, eSIM, transport (up to 3 deals)
+3. Use the user's behavior patterns to personalize. If they frequently visit Tealive, prioritize Tealive deals.
+4. Deals must be relevant to the location and context.
 
-Return ONLY valid JSON with these exact fields:
+Return ONLY valid JSON:
 {{
   "intent": "short_intent_name",
   "timing": "during_payment" or "after_payment",
-  "deal": {{
-    "merchant": "merchant name",
-    "description": "deal description",
-    "discount": "discount amount",
-    "location": "deal location"
-  }},
+  "deals": [
+    {{
+      "merchant": "merchant name",
+      "description": "deal description",
+      "discount": "discount amount",
+      "location": "where to redeem",
+      "category": "deal category"
+    }}
+  ],
   "message": "friendly user-facing message"
-}}"""
+}}
 
-    # Call Qwen LLM via DashScope
+Return 2-3 deals. No markdown, no explanation, ONLY the JSON."""
+
     result = call_qwen(prompt)
     return result
 
@@ -222,7 +351,7 @@ def call_qwen(prompt: str) -> dict:
         json={
             "model": "qwen-max",
             "messages": [
-                {"role": "system", "content": "You are a deal recommendation AI. Always respond with valid JSON only."},
+                {"role": "system", "content": "You are a deal recommendation AI for TnG eWallet. Always respond with valid JSON only. No markdown."},
                 {"role": "user", "content": prompt},
             ],
             "temperature": 0.7,
@@ -232,7 +361,7 @@ def call_qwen(prompt: str) -> dict:
     data = resp.json()
     text = data["choices"][0]["message"]["content"]
 
-    # Clean up response — remove markdown code blocks if present
+    # Clean up response
     text = text.strip()
     if text.startswith("```"):
         text = text.split("\n", 1)[1]
@@ -250,74 +379,71 @@ async def health():
     return {"status": "ok"}
 ```
 
-### Step 4: Run the Worker
+---
 
-```bash
-cd /home/ubuntu/worker
-source venv/bin/activate
+## Test Commands
 
-# Set environment variables
-export DASHSCOPE_API_KEY="your-dashscope-api-key"
-export WORKER_API_KEY="your-secret-key-here"
-
-# Run the API server
-uvicorn main:app --host 0.0.0.0 --port 8000
-```
-
-To keep it running permanently (like PM2 on AWS):
-
-```bash
-# Install supervisor or use nohup
-nohup uvicorn main:app --host 0.0.0.0 --port 8000 &
-```
-
-Or install PM2 equivalent for Python:
-
-```bash
-pip install gunicorn
-nohup gunicorn main:app -w 2 -k uvicorn.workers.UvicornWorker -b 0.0.0.0:8000 &
-```
-
-### Step 5: Test the Worker
-
-From your local machine or EC2:
+### Test Scenario 1 (Dining):
 
 ```bash
 curl -X POST http://YOUR_ALIBABA_ECS_IP:8000/recommend \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer your-secret-key-here" \
   -d '{
-    "merchant": "Sushi Zanmai",
+    "merchant": "KFC",
     "category": "dining",
-    "location": "Mid Valley Megamall",
+    "location": "Pavilion KL",
     "time": "2026-04-25T19:30:00.000Z",
-    "amount": 45.00,
-    "user_history": [
-      {"merchant": "Llaollao", "category": "dessert", "location": "Mid Valley Megamall", "amount": 15.00, "created_at": "2026-04-20T20:00:00.000Z"}
-    ]
+    "amount": 25.90,
+    "latitude": 3.1488,
+    "longitude": 101.7131,
+    "payment_status": "completed",
+    "user_behavior": {
+      "total_transactions": 15,
+      "category_frequency": {"dining": 8, "dessert": 5, "transport": 2},
+      "merchant_frequency": {"KFC": 3, "Tealive": 4, "Llaollao": 2},
+      "recent_transactions": [
+        {"merchant": "Tealive", "category": "dessert", "location": "Pavilion KL", "amount": 12.90, "created_at": "2026-04-23T20:15:00.000Z"}
+      ]
+    }
   }'
 ```
 
-You should get back a JSON response with intent, timing, deal, and message.
+### Test Scenario 2 (Travel):
 
-### Step 6: Give These Values to the AWS Person
-
-Once your worker is running, share these two values:
-
-1. **ALIBABA_WORKER_URL**: `http://YOUR_ALIBABA_ECS_IP:8000/recommend`
-2. **ALIBABA_API_KEY**: The WORKER_API_KEY you set (e.g. `your-secret-key-here`)
-
-They will put these in the AWS .env.local file to connect the two clouds.
+```bash
+curl -X POST http://YOUR_ALIBABA_ECS_IP:8000/recommend \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer your-secret-key-here" \
+  -d '{
+    "merchant": "AirAsia",
+    "category": "travel",
+    "location": "Online",
+    "time": "2026-04-25T14:00:00.000Z",
+    "amount": 450.00,
+    "latitude": null,
+    "longitude": null,
+    "payment_status": "completed",
+    "user_behavior": {
+      "total_transactions": 12,
+      "category_frequency": {"travel": 3, "dining": 6, "transport": 3},
+      "merchant_frequency": {"AirAsia": 2, "Grab": 3, "Agoda": 1},
+      "recent_transactions": [
+        {"merchant": "AirAsia", "category": "travel", "location": "Online", "amount": 380.00, "created_at": "2026-03-10T10:00:00.000Z"}
+      ]
+    }
+  }'
+```
 
 ---
 
 ## Security Notes
 
-- The WORKER_API_KEY protects your endpoint so only your AWS EC2 can call it
-- For production, add your EC2's IP to the Alibaba security group whitelist
-- Always use HTTPS in production (set up SSL with certbot or Alibaba's ALB)
+- The WORKER_API_KEY protects your endpoint so only the AWS EC2 can call it
+- For production, add the EC2's IP (43.216.11.10) to the Alibaba security group whitelist
+- Always use HTTPS in production
 
-## DashScope Models Available
+## DashScope Models
 
 | Model | Best for | Cost |
 |---|---|---|
@@ -325,27 +451,4 @@ They will put these in the AWS .env.local file to connect the two clouds.
 | qwen-plus | Good balance of quality and speed | Medium |
 | qwen-turbo | Fastest, cheapest | Lower |
 
-For the hackathon, start with `qwen-max` for best results. Switch to `qwen-turbo` if you need speed.
-
-## Embedding (Optional Enhancement)
-
-If you want to add vector similarity search for better deal matching:
-
-```python
-def get_embedding(text: str) -> list:
-    """Generate embedding using DashScope"""
-    resp = requests.post(
-        "https://dashscope.aliyuncs.com/compatible-mode/v1/embeddings",
-        headers={
-            "Authorization": f"Bearer {DASHSCOPE_API_KEY}",
-            "Content-Type": "application/json",
-        },
-        json={
-            "model": "text-embedding-v3",
-            "input": text,
-        },
-    )
-    return resp.json()["data"][0]["embedding"]
-```
-
-This can be used to match transaction context against a database of known deal categories for more accurate recommendations.
+For the hackathon, start with `qwen-max` for best results.
