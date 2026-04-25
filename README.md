@@ -147,24 +147,29 @@ No manual search required.
 
 ### For Users
 
-- No need to search or browse for deals
-- Highly relevant, personalized vouchers and recommendations
-- Right deals at the right time — during or after payment, depending on context
-- Seamless and intuitive experience
+- Seamless experience — relevant deals appear automatically without searching or browsing
+- Right deals at the right time, matched to the right scenario (e.g. dessert voucher during dinner, travel deals after booking a flight)
+- Personalized to actual spending habits and preferences
+- No friction — vouchers are ready to use exactly when and where they matter
 
 ---
 
 ### For Merchants
 
-- Target users based on real spending behavior and location
-- Reach high-intent customers at the exact moment of relevance
-- Higher voucher redemption and conversion rates
-- Reduced wasted marketing spend
+- **Targeted marketing** — reach users who are genuinely likely to buy, based on real spending behavior, not broad demographics
+- Higher conversion rates — deals are shown to high-intent users at the moment of relevance (e.g. a dessert shop targets users who consistently buy dessert after dinner)
+- Reduced wasted ad spend — no more blasting promotions to uninterested audiences
+- Location-aware targeting — reach users who are physically nearby and in the right mindset to purchase
 
-Example targeting:
-- Users currently paying for dinner near your dessert shop
-- Users who just booked a flight to your hotel's city
-- Users with a routine shopping habit at a nearby competitor
+---
+
+### For TnG eWallet
+
+- Adds an **intelligent layer** on top of the existing TnG platform, transforming it from a payment tool into a smart commerce platform
+- Fully **autonomous** — the system learns, decides, and delivers deals without manual curation or intervention
+- **Attracts more users** — a smarter, more personalized experience gives users a reason to stay and transact more within TnG
+- **Attracts more merchants** — merchants are incentivized to collaborate and list deals when they see real, targeted reach instead of passive marketplace listings
+- **Scales into its own ecosystem** — as more users transact and more merchants onboard, the intelligence layer becomes a self-reinforcing flywheel: better data → better recommendations → more engagement → more merchants → richer deals
 
 ---
 
