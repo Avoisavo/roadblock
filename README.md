@@ -156,20 +156,50 @@ No manual search required.
 
 ### For Merchants
 
+Merchants only see their own four walls. A KFC outlet knows exactly who walked in, what they ordered, and when they paid — but the moment that customer leaves, the trail goes cold. Merchants have **no visibility** into:
+
+- Where their customers go **before** and **after** the transaction
+- What they spend on across **other categories** (groceries, transport, entertainment, travel)
+- **Behavioral patterns** that span across merchants (e.g. salty meal → craving sweet dessert)
+- **Location context** — which mall, neighborhood, or city the customer is currently in
+
+TnG, on the other hand, sits at the **intersection of every transaction**. TnG sees that a user just paid at KFC, knows that most people crave something sweet after a salty meal, and knows there's a Llaollao two minutes away. **No single merchant can ever see this picture on their own.**
+
+By collaborating with TnG, merchants gain access to:
+
+- **Cross-merchant behavioral intelligence** — understand what their customers do across the entire ecosystem, not just within their store
+- **Predictive intent signals** — reach users at the exact moment intent forms, even before the user knows they want something (e.g. Llaollao reaching the KFC customer mid-craving)
+- **Real-time location and timing context** — surface offers when the user is physically nearby and in the right mindset, not hours later through a generic ad
 - **Targeted marketing** — reach users who are genuinely likely to buy, based on real spending behavior, not broad demographics
-- Higher conversion rates — deals are shown to high-intent users at the moment of relevance (e.g. a dessert shop targets users who consistently buy dessert after dinner)
-- Reduced wasted ad spend — no more blasting promotions to uninterested audiences
-- Location-aware targeting — reach users who are physically nearby and in the right mindset to purchase
+- **Higher conversion, lower wasted spend** — promotions reach high-intent users at the moment of relevance, not random audiences
+
+In short: merchants own the transaction, but TnG owns the **context around the transaction** — and context is what turns a promotion into a sale.
 
 ---
 
 ### For TnG eWallet
 
-- Adds an **intelligent layer** on top of the existing TnG platform, transforming it from a payment tool into a smart commerce platform
-- Fully **autonomous** — the system learns, decides, and delivers deals without manual curation or intervention
+The intelligence layer is only as powerful as the **inventory of deals** available to surface. Without merchants, TnG has rich behavioral insight but **nothing to recommend**. The system identifies that a user is craving dessert after a KFC meal — but if no dessert merchant is onboarded nearby, that insight is wasted.
+
+The more merchants TnG onboards:
+
+- **The richer the recommendation pool** — every new merchant adds new deal categories, new locations, and new opportunities to match user intent
+- **The more personalized the experience becomes** — with more options to choose from, the system can match users to the *exact* deal that fits their context, not just the closest available one
+- **The denser the coverage** — users get relevant deals no matter where they are, what they're doing, or what they're craving
+- **The stronger the flywheel** — more deals attract more user engagement, which generates more transaction data, which sharpens recommendations, which attracts even more merchants
+
+Beyond the deal inventory, this transforms TnG itself:
+
+- Adds an **intelligent layer** on top of the existing TnG platform, turning it from a payment tool into a smart commerce platform
+- Fully **autonomous** — the system learns, decides, and delivers deals without manual curation
 - **Attracts more users** — a smarter, more personalized experience gives users a reason to stay and transact more within TnG
-- **Attracts more merchants** — merchants are incentivized to collaborate and list deals when they see real, targeted reach instead of passive marketplace listings
-- **Scales into its own ecosystem** — as more users transact and more merchants onboard, the intelligence layer becomes a self-reinforcing flywheel: better data → better recommendations → more engagement → more merchants → richer deals
+
+#### The Mutual Dependency
+
+> Merchants need TnG for the **context and intent data** they cannot collect on their own.
+> TnG needs merchants for the **deal inventory** that makes its intelligence actionable.
+
+Neither side wins alone — but together, they create a self-reinforcing ecosystem where every new merchant makes recommendations better, every better recommendation drives more engagement, and every transaction makes the system smarter.
 
 ---
 
