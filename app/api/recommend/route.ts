@@ -1,4 +1,5 @@
 import pool from "@/lib/db";
+import { callNovaMicro } from "@/lib/bedrock";
 
 export async function POST(request: Request) {
   try {
@@ -24,7 +25,7 @@ export async function POST(request: Request) {
       merchantFrequency[txn.merchant] = (merchantFrequency[txn.merchant] || 0) + 1;
     }
 
-    // 3. Build context payload for Alibaba Cloud Worker
+    // 3. Build context payload
     const payload = {
       merchant,
       category,
@@ -42,27 +43,74 @@ export async function POST(request: Request) {
       },
     };
 
-    // 4. Send to Alibaba Cloud Worker API
-    const alibabaResponse = await fetch(process.env.ALIBABA_WORKER_URL!, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${process.env.ALIBABA_API_KEY}`,
-      },
-      body: JSON.stringify(payload),
-    });
+    let aiResult;
+    let source = "alibaba";
 
-    if (!alibabaResponse.ok) {
-      const errorText = await alibabaResponse.text();
-      return Response.json(
-        { error: "Alibaba worker error", status: alibabaResponse.status, details: errorText },
-        { status: 502 }
-      );
+    // 4. Try Alibaba Cloud Worker API first
+    try {
+      const alibabaResponse = await fetch(process.env.ALIBABA_WORKER_URL!, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${process.env.ALIBABA_API_KEY}`,
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (!alibabaResponse.ok) {
+        throw new Error(`Alibaba returned ${alibabaResponse.status}`);
+      }
+
+      aiResult = await alibabaResponse.json();
+    } catch (alibabaError) {
+      // 5. Fallback to AWS Bedrock Nova Micro
+      console.log("Alibaba failed, falling back to Bedrock Nova Micro:", alibabaError);
+      source = "bedrock";
+
+      const prompt = `You are an AI deal recommendation engine for TnG eWallet in Malaysia.
+
+CURRENT TRANSACTION:
+- Merchant: ${merchant}
+- Category: ${category}
+- Location: ${location}
+- Time: ${payload.time}
+- Amount: RM${amount}
+- GPS: lat=${latitude}, lng=${longitude}
+
+USER BEHAVIOR:
+- Total past transactions: ${history.length}
+- Category frequency: ${JSON.stringify(categoryFrequency)}
+- Merchant frequency: ${JSON.stringify(merchantFrequency)}
+- Recent transactions: ${JSON.stringify(history.slice(0, 5))}
+
+RULES:
+1. If user is dining/shopping at a physical location → timing = "during_payment", recommend nearby food/drinks/desserts (up to 3 deals)
+2. If user is booking travel → timing = "after_payment", recommend travel deals like hotels, eSIM, transport (up to 3 deals)
+3. Use user behavior patterns to personalize recommendations.
+4. Deals must be relevant to the location and context.
+
+Return ONLY valid JSON with no markdown:
+{
+  "intent": "short_intent_name",
+  "timing": "during_payment" or "after_payment",
+  "deals": [
+    {
+      "merchant": "merchant name",
+      "description": "deal description",
+      "discount": "discount amount",
+      "location": "where to redeem",
+      "category": "deal category"
+    }
+  ],
+  "message": "friendly user-facing message"
+}
+
+Return 2-3 deals. ONLY JSON, no other text.`;
+
+      aiResult = await callNovaMicro(prompt);
     }
 
-    const aiResult = await alibabaResponse.json();
-
-    // 5. Save recommendation to RDS (skip if no intent returned)
+    // 6. Save recommendation to RDS
     if (aiResult.intent) {
       await pool.query(
         `INSERT INTO recommendations (user_id, intent, timing)
@@ -71,12 +119,13 @@ export async function POST(request: Request) {
       );
     }
 
-    // 6. Return result to frontend
+    // 7. Return result to frontend
     return Response.json({
       intent: aiResult.intent,
       timing: aiResult.timing,
       deals: aiResult.deals,
       message: aiResult.message,
+      source,
     });
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : "Unknown error";
