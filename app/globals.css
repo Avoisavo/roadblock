@@ -39,6 +39,12 @@ button {
   font: inherit;
 }
 
+.icon-svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
 .app-stage {
   min-height: 100dvh;
   display: grid;
@@ -70,8 +76,9 @@ button {
 
 .location-arrow {
   margin-left: -210px;
-  transform: rotate(44deg);
-  font-size: 19px;
+  width: 16px;
+  height: 16px;
+  transform: rotate(18deg);
 }
 
 .status-icons {
@@ -79,6 +86,12 @@ button {
   align-items: center;
   gap: 8px;
   font-size: 18px;
+}
+
+.status-icons > span:not(.battery) {
+  width: 20px;
+  height: 20px;
+  display: block;
 }
 
 .battery {
@@ -155,8 +168,9 @@ button {
 
 .glass {
   color: #c9cbd0;
-  font-size: 22px;
-  transform: rotate(-20deg);
+  width: 20px;
+  height: 20px;
+  transform: rotate(-10deg);
 }
 
 .avatar {
@@ -218,7 +232,7 @@ button {
 }
 
 .wallet-hero {
-  height: 258px;
+  height: 248px;
   background: var(--blue);
   color: white;
   border-bottom-left-radius: 15px;
@@ -242,16 +256,13 @@ button {
 .shield {
   width: 22px;
   height: 26px;
-  display: grid;
-  place-items: center;
-  border: 1px dashed rgba(255, 255, 255, 0.75);
-  border-radius: 11px 11px 14px 14px;
   color: rgba(255, 255, 255, 0.92);
 }
 
 .eye {
   margin-left: 6px;
-  font-size: 21px;
+  width: 28px;
+  height: 20px;
 }
 
 .asset-link {
@@ -283,7 +294,7 @@ button {
 
 .quick-panel {
   height: 78px;
-  margin: -33px 16px 0;
+  margin: -39px 16px 0;
   background: white;
   border-radius: 15px;
   display: grid;
@@ -304,8 +315,8 @@ button {
 
 .quick-action span {
   color: var(--blue);
-  font-size: 30px;
-  line-height: 1;
+  width: 34px;
+  height: 34px;
 }
 
 .quick-action b {
@@ -331,25 +342,38 @@ button {
   background: #e8f0fd;
   display: flex;
   align-items: center;
-  gap: 11px;
+  gap: 10px;
   padding: 10px 14px;
   overflow: hidden;
 }
 
+.mini-card > div {
+  min-width: 0;
+  flex: 1;
+}
+
 .mini-card b {
   display: block;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 800;
+  line-height: 1.15;
 }
 
 .mini-card p {
-  margin: 5px 0 0;
-  font-size: 12px;
+  margin: 4px 0 0;
+  font-size: 11px;
+  line-height: 1.2;
   color: #2d2d2d;
 }
 
 .mini-card > span {
-  font-size: 25px;
+  width: 38px;
+  height: 38px;
+  flex: 0 0 auto;
+}
+
+.mini-graphic {
+  display: block;
 }
 
 .fuel {
@@ -375,6 +399,17 @@ button {
   grid-template-columns: 36px 1fr;
   align-items: center;
   gap: 9px;
+}
+
+.fuel-head b {
+  font-size: 12px;
+  line-height: 1.15;
+}
+
+.fuel-head p {
+  margin-top: 4px;
+  font-size: 11px;
+  line-height: 1.2;
 }
 
 .fuel-head span {
@@ -411,11 +446,6 @@ button {
 .fuel-balance span {
   width: 46px;
   height: 46px;
-  display: grid;
-  place-items: center;
-  border: 7px solid #3169ef;
-  border-left-color: #cfe1ff;
-  border-radius: 50%;
   color: var(--blue);
 }
 
@@ -589,53 +619,31 @@ button {
   display: grid;
   place-items: center;
   color: var(--blue);
-  font-size: 31px;
-  line-height: 1;
 }
 
 .cardmatch-mark {
-  border: 3px solid var(--blue);
-  border-radius: 5px;
-  color: #ffd742;
-  font-size: 24px;
-  font-weight: 900;
-  transform: rotate(-12deg);
+  color: var(--blue);
 }
 
 .apple-mark {
   color: #000;
-  font-size: 43px;
 }
 
 .asnb-mark {
   color: #245fd2;
-  font-size: 12px;
-  font-weight: 900;
 }
 
 .prepaid-mark,
 .outlined-mark {
-  border: 3px solid var(--blue);
-  border-radius: 6px;
-  color: #ffd742;
-  font-size: 19px;
-  font-weight: 900;
+  color: var(--blue);
 }
 
 .circle-mark {
-  border: 3px solid var(--blue);
-  border-radius: 50%;
-  color: #ffd742;
-  background: #ffe36a;
-  font-size: 24px;
+  color: var(--blue);
 }
 
 .taobao-mark {
-  border-radius: 6px;
-  background: #f36d25;
-  color: white;
-  font-size: 9px;
-  font-weight: 800;
+  color: var(--blue);
 }
 
 .feature-label {
@@ -827,11 +835,10 @@ button {
 
 .nav-item span {
   height: 31px;
+  width: 31px;
   display: grid;
   place-items: center;
   color: #777;
-  font-size: 28px;
-  line-height: 1;
 }
 
 .nav-item.active,
