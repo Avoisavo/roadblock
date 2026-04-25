@@ -40,38 +40,38 @@ button {
 }
 
 .app-stage {
-  min-height: 100vh;
+  min-height: 100dvh;
   display: grid;
   place-items: center;
-  padding: 18px;
+  padding: 0;
 }
 
 .phone {
-  width: min(100vw, 393px);
-  height: min(100vh, 852px);
-  min-height: 760px;
+  width: min(100vw, 414px);
+  height: 100dvh;
+  min-height: 0;
   position: relative;
   overflow: hidden;
   background: #f3f5f9;
-  box-shadow: 0 24px 60px rgba(19, 34, 67, 0.28);
+  box-shadow: none;
 }
 
 .status-bar {
-  height: 53px;
+  height: 42px;
   display: flex;
   align-items: end;
   justify-content: space-between;
-  padding: 0 24px 9px;
+  padding: 0 25px 10px;
   color: white;
   font-weight: 800;
-  font-size: 17px;
+  font-size: 16px;
   line-height: 1;
 }
 
 .location-arrow {
-  margin-left: -190px;
-  transform: rotate(45deg);
-  font-size: 17px;
+  margin-left: -210px;
+  transform: rotate(44deg);
+  font-size: 19px;
 }
 
 .status-icons {
@@ -105,7 +105,7 @@ button {
 
 .top-search {
   display: grid;
-  grid-template-columns: 99px 1fr 38px;
+  grid-template-columns: 98px 1fr 45px;
   gap: 10px;
   align-items: center;
   padding: 0 16px;
@@ -128,7 +128,7 @@ button {
   border: 1px solid rgba(255, 255, 255, 0.85);
   overflow: hidden;
   padding-left: 8px;
-  font-size: 14px;
+  font-size: 13px;
   gap: 6px;
 }
 
@@ -147,7 +147,7 @@ button {
 
 .search-pill {
   color: #4d4d4d;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 800;
   gap: 8px;
   padding: 0 14px;
@@ -160,8 +160,8 @@ button {
 }
 
 .avatar {
-  width: 38px;
-  height: 38px;
+  width: 45px;
+  height: 45px;
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.18);
   position: relative;
@@ -179,15 +179,15 @@ button {
   width: 13px;
   height: 13px;
   border-radius: 50%;
-  margin-top: -9px;
+  margin-top: -10px;
 }
 
 .avatar b {
-  width: 27px;
+  width: 28px;
   height: 12px;
   border-radius: 50% 50% 45% 45%;
   position: absolute;
-  bottom: 7px;
+  bottom: 10px;
 }
 
 .avatar i {
@@ -211,8 +211,14 @@ button {
   display: none;
 }
 
+.wallet-shell {
+  color: white;
+  position: relative;
+  z-index: 3;
+}
+
 .wallet-hero {
-  height: 346px;
+  height: 258px;
   background: var(--blue);
   color: white;
   border-bottom-left-radius: 15px;
@@ -223,8 +229,8 @@ button {
 .balance-row {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 30px 16px 0;
+  gap: 9px;
+  padding: 8px 16px 0;
 }
 
 .balance-row strong {
@@ -250,56 +256,55 @@ button {
 
 .asset-link {
   color: rgba(255, 255, 255, 0.56);
-  font-size: 14px;
-  padding: 20px 16px 0;
+  font-size: 13px;
+  padding: 8px 16px 0;
 }
 
 .hero-actions {
   display: flex;
   align-items: center;
   gap: 24px;
-  padding: 24px 16px 0;
+  padding: 10px 16px 0;
 }
 
 .hero-actions button {
-  height: 40px;
+  height: 33px;
   color: white;
   background: transparent;
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 500;
 }
 
 .hero-actions button:first-child {
-  min-width: 132px;
+  min-width: 131px;
   border: 1px solid white;
   border-radius: 999px;
 }
 
 .quick-panel {
-  height: 73px;
-  position: absolute;
-  left: 16px;
-  right: 16px;
-  top: 266px;
+  height: 78px;
+  margin: -33px 16px 0;
   background: white;
   border-radius: 15px;
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   align-items: center;
   box-shadow: 0 12px 22px rgba(43, 54, 86, 0.06);
+  position: relative;
+  z-index: 10;
 }
 
 .quick-action {
   display: grid;
   justify-items: center;
-  gap: 5px;
+  gap: 7px;
   color: #2d2d2d;
   font-size: 14px;
 }
 
 .quick-action span {
   color: var(--blue);
-  font-size: 29px;
+  font-size: 30px;
   line-height: 1;
 }
 
@@ -308,15 +313,17 @@ button {
 }
 
 .home-content {
-  padding-top: 96px;
+  padding-top: 21px;
+  position: relative;
+  z-index: 1;
 }
 
 .info-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  grid-template-rows: 55px 55px;
-  gap: 8px 11px;
-  padding: 0 16px 9px;
+  grid-template-rows: 58px 58px;
+  gap: 8px 12px;
+  padding: 0 16px 10px;
 }
 
 .mini-card {
@@ -324,7 +331,7 @@ button {
   background: #e8f0fd;
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 11px;
   padding: 10px 14px;
   overflow: hidden;
 }
@@ -346,10 +353,21 @@ button {
 }
 
 .fuel {
+  grid-column: 2;
   grid-row: 1 / span 2;
   flex-direction: column;
   align-items: stretch;
   padding: 10px 8px;
+}
+
+.grow {
+  grid-column: 1;
+  grid-row: 1;
+}
+
+.rewards {
+  grid-column: 1;
+  grid-row: 2;
 }
 
 .fuel-head {
@@ -417,30 +435,31 @@ button {
 
 .hero-card-row {
   display: grid;
-  grid-template-columns: 28px 1fr;
+  grid-template-columns: 29px 1fr;
   gap: 16px;
-  margin-top: 7px;
+  margin-top: 8px;
   overflow: hidden;
 }
 
 .side-promo {
-  height: 132px;
+  height: 139px;
   border-radius: 0 6px 6px 0;
   background: linear-gradient(140deg, #f7b53f, #d98722);
 }
 
 .travel-banner {
-  height: 132px;
+  height: 139px;
   margin-right: 16px;
   border-radius: 6px;
   color: white;
-  padding: 16px;
+  padding: 18px 18px;
   position: relative;
   overflow: hidden;
   background:
-    linear-gradient(90deg, rgba(0, 0, 0, 0.7), rgba(10, 50, 100, 0.08)),
-    radial-gradient(circle at 78% 30%, #f7faff 0 12%, transparent 13%),
-    linear-gradient(135deg, #d3c7cc 0 33%, #dbeeff 34% 62%, #b3cfeb 63%);
+    linear-gradient(90deg, rgba(0, 0, 0, 0.88), rgba(10, 50, 100, 0.12) 52%),
+    radial-gradient(circle at 83% 77%, rgba(255, 255, 255, 0.95) 0 13%, transparent 14%),
+    radial-gradient(circle at 66% 18%, rgba(255, 226, 238, 0.95) 0 18%, transparent 19%),
+    linear-gradient(135deg, #513d43 0 28%, #f8c6da 29% 48%, #deecff 49% 100%);
 }
 
 .travel-banner::after {
@@ -457,37 +476,64 @@ button {
 
 .travel-banner span {
   display: inline-block;
+  color: #1e57d4;
+  background: #ffe638;
+  font-size: 10px;
+  font-weight: 800;
+  padding: 1px 7px 2px 29px;
+  transform: skew(-12deg);
+  position: relative;
+  z-index: 1;
+}
+
+.travel-banner span em {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  display: grid;
+  place-items: center;
+  padding: 0 7px;
   color: white;
   background: #2b66e8;
-  font-size: 9px;
-  font-weight: 800;
-  padding: 2px 6px;
-  transform: skew(-12deg);
+  font-style: normal;
 }
 
 .travel-banner h2 {
   position: relative;
   z-index: 1;
-  width: 235px;
-  margin: 8px 0 0;
+  width: 210px;
+  margin: 9px 0 0;
   font-size: 21px;
-  line-height: 1.05;
+  line-height: 1.03;
   letter-spacing: 0;
+  font-weight: 900;
 }
 
 .travel-banner p {
   position: relative;
   z-index: 1;
-  margin: 5px 0 0;
+  margin: 6px 0 0;
   font-size: 17px;
 }
 
 .travel-banner b {
   position: absolute;
   right: 12px;
-  top: 15px;
+  top: 16px;
   color: #f4d725;
   font-size: 18px;
+}
+
+.travel-banner strong {
+  position: absolute;
+  right: 15px;
+  bottom: 10px;
+  z-index: 1;
+  color: white;
+  font-size: 21px;
+  font-style: italic;
+  letter-spacing: -1px;
 }
 
 .dots {
@@ -495,7 +541,7 @@ button {
   justify-content: center;
   align-items: center;
   gap: 8px;
-  height: 27px;
+  height: 35px;
 }
 
 .dots span,
@@ -527,7 +573,7 @@ button {
 .four-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  margin-top: 18px;
+  margin-top: 17px;
 }
 
 .feature {
@@ -545,6 +591,15 @@ button {
   color: var(--blue);
   font-size: 31px;
   line-height: 1;
+}
+
+.cardmatch-mark {
+  border: 3px solid var(--blue);
+  border-radius: 5px;
+  color: #ffd742;
+  font-size: 24px;
+  font-weight: 900;
+  transform: rotate(-12deg);
 }
 
 .apple-mark {
@@ -604,7 +659,7 @@ button {
 }
 
 .favourites-block {
-  margin-top: 23px;
+  margin-top: 27px;
 }
 
 .finance-strip {
@@ -738,13 +793,14 @@ button {
   left: 0;
   right: 0;
   bottom: 0;
-  height: 84px;
+  height: 68px;
   background: rgba(255, 255, 255, 0.96);
   display: grid;
   grid-template-columns: repeat(5, 1fr);
   align-items: center;
-  padding: 9px 14px 9px;
+  padding: 8px 14px 9px;
   box-shadow: 0 -9px 24px rgba(38, 50, 80, 0.08);
+  z-index: 20;
 }
 
 .bottom-nav::after,
@@ -765,7 +821,7 @@ button {
   justify-items: center;
   gap: 2px;
   color: #777;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 800;
 }
 
@@ -795,28 +851,66 @@ button {
   box-shadow: 0 0 0 8px white;
 }
 
-.scan-fab span {
+.scan-icon {
   width: 30px;
   height: 30px;
-  border: 3px solid #d6e4ff;
-  border-radius: 5px;
   position: relative;
 }
 
-.scan-fab span::before,
-.scan-fab span::after {
-  content: "";
+.scan-icon i {
   position: absolute;
-  inset: 8px -7px;
-  border-top: 3px solid rgba(214, 228, 255, 0.8);
-  border-bottom: 3px solid rgba(214, 228, 255, 0.8);
+  display: block;
+  width: 10px;
+  height: 10px;
+  border: 3px solid #d6e4ff;
 }
 
-.scan-fab span::after {
-  inset: -7px 8px;
-  border: 0;
-  border-left: 3px solid rgba(214, 228, 255, 0.8);
-  border-right: 3px solid rgba(214, 228, 255, 0.8);
+.scan-icon i:nth-child(1) {
+  left: 0;
+  top: 0;
+  border-right: 0;
+  border-bottom: 0;
+  border-radius: 6px 0 0 0;
+}
+
+.scan-icon i:nth-child(2) {
+  right: 0;
+  top: 0;
+  border-left: 0;
+  border-bottom: 0;
+  border-radius: 0 6px 0 0;
+}
+
+.scan-icon i:nth-child(3) {
+  left: 0;
+  bottom: 0;
+  border-right: 0;
+  border-top: 0;
+  border-radius: 0 0 0 6px;
+}
+
+.scan-icon i:nth-child(4) {
+  right: 0;
+  bottom: 0;
+  border-left: 0;
+  border-top: 0;
+  border-radius: 0 0 6px 0;
+}
+
+.scan-icon::before {
+  content: "";
+  position: absolute;
+  inset: 11px;
+  border-radius: 4px;
+  background: rgba(214, 228, 255, 0.18);
+}
+
+.scan-icon::after {
+  content: "";
+  position: absolute;
+  inset: 9px;
+  border: 2px solid rgba(214, 228, 255, 0.85);
+  border-radius: 5px;
 }
 
 .scan-phone {
@@ -960,7 +1054,7 @@ button {
   position: absolute;
   left: 0;
   right: 0;
-  bottom: 184px;
+  bottom: 200px;
   z-index: 3;
   display: flex;
   justify-content: center;

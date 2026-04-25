@@ -14,7 +14,7 @@ const favourites = [
 ];
 
 const recommended = [
-  { icon: "▯", label: "CardMatch" },
+  { icon: "▯", label: "CardMatch", cardmatch: true },
   { icon: "25", label: "Payday" },
   { icon: "🏖️", label: "Travel" },
   { icon: "Taobao", label: "Taobao", badge: true },
@@ -71,6 +71,7 @@ function FeatureIcon({
           "outlined" in item && item.outlined ? "outlined-mark" : "",
           "circle" in item && item.circle ? "circle-mark" : "",
           "badge" in item && item.badge ? "taobao-mark" : "",
+          "cardmatch" in item && item.cardmatch ? "cardmatch-mark" : "",
         ].join(" ")}
       >
         {item.icon}
@@ -92,7 +93,12 @@ function BottomNav({ onScan }: { onScan: () => void }) {
         <b>eShop</b>
       </div>
       <button className="scan-fab" aria-label="Open scanner" onClick={onScan}>
-        <span />
+        <span className="scan-icon">
+          <i />
+          <i />
+          <i />
+          <i />
+        </span>
       </button>
       <div className="nav-item">
         <span>$</span>
@@ -108,23 +114,25 @@ function BottomNav({ onScan }: { onScan: () => void }) {
 
 function WalletHero() {
   return (
-    <section className="wallet-hero">
-      <StatusBar battery="45" />
-      <TopSearch />
-      <div className="balance-row">
-        <span className="shield">♢</span>
-        <strong>RM 19.92</strong>
-        <span className="eye">◉</span>
+    <section className="wallet-shell">
+      <div className="wallet-hero">
+        <StatusBar battery="45" />
+        <TopSearch />
+        <div className="balance-row">
+          <span className="shield">♢</span>
+          <strong>RM 19.92</strong>
+          <span className="eye">◉</span>
+        </div>
+        <div className="asset-link">View asset details ›</div>
+        <div className="hero-actions">
+          <button>+&nbsp; Add money</button>
+          <button>Transactions ›</button>
+        </div>
       </div>
-      <div className="asset-link">View asset details ›</div>
-      <div className="hero-actions">
-        <button>+&nbsp; Add money</button>
-        <button>Transactions ›</button>
-      </div>
-      <div className="quick-panel">
+      <div className="quick-panel" aria-label="Quick actions">
         {["Apply", "Cash flow", "Transfer", "Cards"].map((label, index) => (
           <div className="quick-action" key={label}>
-            <span>{["▣", "◔", "⌁", "▭"][index]}</span>
+            <span>{["▣", "◔", "✈", "▭"][index]}</span>
             <b>{label}</b>
           </div>
         ))}
@@ -175,10 +183,11 @@ function HomeScreen({ onScan }: { onScan: () => void }) {
           <section className="hero-card-row">
             <div className="side-promo" />
             <div className="travel-banner">
-              <span>Promo</span>
+              <span><em>Promo</em> Visa Travel Card</span>
               <h2>Wiser travels this spring with up to 5% cashback</h2>
               <p>Check it out</p>
               <b>GOfinance</b>
+              <strong>VISA</strong>
             </div>
           </section>
           <div className="dots"><span /><span /><span /><b /></div>
