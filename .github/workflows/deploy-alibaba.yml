@@ -6,7 +6,8 @@ on:
       - main
 
 jobs:
-  deploy:
+  deploy-web:
+    name: Deploy Next.js Web App
     runs-on: ubuntu-latest
     steps:
       - name: Deploy to Alibaba Cloud ECS via SSH
@@ -29,3 +30,32 @@ jobs:
             WORKER_API_KEY=$WORKER_API_KEY
             EOF
             /root/deploy-web.sh
+
+  deploy-worker:
+    name: Deploy FastAPI Worker
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Copy main.py to GPU ECS
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ vars.ALIBABA_WORKER_HOST }}
+          username: ${{ secrets.ALIBABA_USER }}
+          key: ${{ secrets.ALIBABA_SSH_KEY }}
+          source: "alibaba/main.py"
+          target: "/root/main.py"
+          overwrite: true
+
+      - name: Restart roadblock-worker service
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ vars.ALIBABA_WORKER_HOST }}
+          username: ${{ secrets.ALIBABA_USER }}
+          key: ${{ secrets.ALIBABA_SSH_KEY }}
+          script: |
+            echo "Restarting roadblock-worker..."
+            systemctl restart roadblock-worker
+            sleep 2
+            systemctl status roadblock-worker --no-pager
