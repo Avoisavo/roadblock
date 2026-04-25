@@ -2,11 +2,11 @@
 
 ## Problem Statement
 
-Transaction data in TnG eWallet is currently underutilized and exists in silos, while many miniapps within the platform remain unused. The core issue lies in discovery. Today, users are required to manually open a marketplace, scroll through unfamiliar miniapps, and guess what might be useful. In reality, this behavior rarely happens—especially right after making a payment.
+Transaction data in TnG eWallet is currently underutilized and exists in silos, while many miniapp deals—such as vouchers, cashback offers, and promotions—within miniapps of the platform remain unused. The core issue lies in discovery and timing. Today, users are required to manually open a marketplace, scroll through unfamiliar miniapps and offers, and guess what might be useful. In reality, this behavior rarely happens—especially in the middle of a transaction.
 
-This breaks the entire miniapp ecosystem. Developers build miniapps, but users do not discover them. As a result, even highly useful services remain invisible.
+This breaks the entire miniapp ecosystem. Merchants create deals, but users never see them at the right moment. As a result, even highly relevant vouchers and promotions remain invisible.
 
-The fundamental problem is that discovery is **active**, while real user needs are **contextual and moment-driven**. Miniapps should not rely on users to find them. Instead, they should appear automatically at the exact moment they are needed.
+The fundamental problem is that discovery is **active**, while real user needs are **contextual and moment-driven**. Deals should not rely on users to find them. Instead, they should appear automatically at the exact moment they are needed—and depending on the context, that moment could be **during payment** or **after payment**.
 
 ---
 
@@ -16,27 +16,30 @@ We propose an **AI-powered Intelligence Layer** built on top of transaction data
 
 Instead of treating transactions as static records, this system interprets them as **real-time signals of user intent**. By analyzing transaction context such as location, spending category, timing, and behavioral patterns, the system understands what the user is likely to need next.
 
-Based on this, the system proactively surfaces the most relevant miniapp or deal at the right moment—without requiring any user effort.
+Based on this, the system proactively surfaces the most relevant miniapp deal—such as a voucher, discount, or service recommendation—at the right moment. Critically, the system determines **when** to show the deal on a case-by-case basis:
+
+- **During payment** — For impulse-friendly, low-consideration deals tied to the user's current location and habits (e.g. a dessert voucher while paying for dinner).
+- **After payment** — For higher-consideration decisions that require thought (e.g. hotel and car rental recommendations after booking a flight).
 
 This transforms the experience from:
 
 **Active discovery → Passive, intelligent engagement**
 
-Where miniapps no longer wait to be discovered, but instead find the user when they are most relevant.
+Where deals no longer wait to be discovered, but instead find the user when they are most relevant—and at the right stage of their transaction.
 
 ---
 
 ## Implementation
 
-The system is designed as a real-time pipeline that converts raw transaction data into actionable engagement.
+The system is designed as a real-time pipeline that converts raw transaction data into actionable deal delivery.
 
 ### 1. Transaction Ingestion
 
-The user performs a transaction (e.g. payment, purchase, transfer).
+The user initiates or completes a transaction (e.g. payment, purchase, booking).
 
 Examples:
-- Paying for coffee
-- Buying a flight ticket
+- Paying for dinner at a mall
+- Buying a plane ticket
 - Paying for public transport
 - Grocery shopping
 
@@ -46,10 +49,11 @@ Examples:
 
 Raw transaction data is enriched into meaningful structured data:
 
-- Merchant (e.g. Starbucks, AirAsia)
+- Merchant (e.g. Sushi Zanmai, AirAsia)
 - Category (Dining, Travel, Transport, Groceries)
-- Location (City, Country)
-- Time (Morning, Weekend, Late Night)
+- Location (Mall name, City, Country)
+- Time (Lunch, Dinner, Weekend, Late Night)
+- User behavior history (e.g. frequently buys dessert after dinner, often books hotels after flights)
 
 ---
 
@@ -57,30 +61,38 @@ Raw transaction data is enriched into meaningful structured data:
 
 AI models analyze patterns and infer user intent:
 
-- Repeated coffee purchases → Daily habit
-- Flight purchase → Travel intent
-- Overseas transport → Mobility need
-- Frequent dining → Lifestyle preference
+- Dinner payment at a mall + history of dessert purchases → Dessert craving likely
+- Flight ticket purchase → Travel preparation intent
+- Overseas transport usage → Local mobility need
+- Repeated grocery trips → Household routine
 
 ---
 
 ### 4. Decision Engine
 
-The system determines the most relevant miniapp or offer to surface:
+The system determines the most relevant deal to surface **and when to show it**:
 
-- Coffee habit → Nearby cashback or loyalty miniapp
-- Flight booking → Travel insurance / hotel miniapps
-- Overseas transport → Local payment (e.g. Octopus) miniapp
+| Trigger | Deal | Timing | Reasoning |
+|---|---|---|---|
+| Paying for dinner at a mall | Llaollao voucher (e.g. 20% off) | **During payment** | Low-consideration, impulse-friendly; user is at the location and historically goes for dessert after dinner |
+| Buying a plane ticket | Hotel booking, car rental, eSIM deals | **After payment** | High-consideration; user needs time to think and plan, not an impulse decision |
+| Overseas transport usage | Local transport pass deal | **After payment** | User is already in transit; show after current ride is settled |
+| Frequent grocery shopping | Cashback voucher for nearby supermarket | **During payment** | Routine purchase; voucher can apply immediately to current basket |
 
 ---
 
 ### 5. Trigger & Delivery
 
-The selected miniapp is surfaced instantly through:
+The selected deal is surfaced through the appropriate channel based on timing:
 
-- Post-payment screen
-- In-app recommendation panel
-- Push notifications
+**During Payment:**
+- Inline deal card on the payment confirmation screen (before user confirms)
+- One-tap voucher redemption applied directly to checkout
+
+**After Payment:**
+- Post-payment recommendation panel
+- In-app notification with deal details
+- Push notification for time-sensitive offers
 
 No manual search required.
 
@@ -88,42 +100,46 @@ No manual search required.
 
 ## User Flow
 
-### Scenario 1: Overseas Travel
+### Scenario 1: Dinner at a Mall → Dessert Voucher (During Payment)
 
-1. User travels to Hong Kong  
-2. Pays for a bus ride  
-3. System detects:
-   - Overseas location  
-   - Public transport usage  
-   - Travel context  
+1. User is at a mall and pays for dinner at a restaurant
+2. System detects:
+   - Location: Mid Valley Megamall
+   - Category: Dining (Dinner)
+   - Behavior: User frequently buys dessert after dinner (75% of the time)
+   - Nearby merchants: Llaollao is 2 minutes away
 
-4. Miniapp is triggered:
+3. **During the payment screen**, a deal is shown:
 
-👉 “Travelling in Hong Kong? Get an Octopus card or local transport pass here.”
+👉 "Craving dessert? Here's 20% off Llaollao — just around the corner 🍦"
 
----
-
-### Scenario 2: Flight Purchase
-
-1. User buys a flight ticket  
-2. System detects travel intent  
-3. Instantly surfaces:
-
-- Travel insurance miniapp  
-- Hotel booking miniapp  
-- Airport transfer miniapp  
-
-No searching required.
+4. User taps to claim the voucher and uses it immediately after dinner
 
 ---
 
-### Scenario 3: Daily Habit
+### Scenario 2: Flight Ticket → Travel Essentials (After Payment)
 
-1. User buys coffee every weekday morning  
-2. System learns behavior pattern  
-3. Suggests:
+1. User purchases a flight ticket to Tokyo
+2. System detects travel intent and destination
+3. **After payment is completed**, the system surfaces:
 
-👉 “You usually get coffee now. Enjoy 20% off nearby today.”
+- 🏨 Hotel booking deals in Tokyo
+- 🚗 Car rental offers at destination
+- 📱 Japan eSIM data plans
+
+👉 "Planning your Tokyo trip? Here are deals to get you sorted."
+
+4. These appear on the post-payment screen and are saved in-app for later — because booking a hotel or buying an eSIM is a bigger decision that needs consideration
+
+---
+
+### Scenario 3: Weekly Groceries → Instant Cashback (During Payment)
+
+1. User shops at the same supermarket every Saturday
+2. System learns the routine pattern
+3. **During payment**, a voucher is shown:
+
+👉 "Your weekly shop? Here's RM5 cashback on orders above RM80 — applied automatically 🛒"
 
 ---
 
@@ -131,39 +147,39 @@ No searching required.
 
 ### For Users
 
-- No need to search or browse miniapps  
-- Highly relevant, personalized recommendations  
-- Right suggestions at the right time  
-- Seamless and intuitive experience  
+- No need to search or browse for deals
+- Highly relevant, personalized vouchers and recommendations
+- Right deals at the right time — during or after payment, depending on context
+- Seamless and intuitive experience
 
 ---
 
 ### For Merchants
 
-- Target users based on real spending behavior  
-- Reach high-intent customers  
-- Higher conversion rates  
-- Reduced wasted marketing spend  
+- Target users based on real spending behavior and location
+- Reach high-intent customers at the exact moment of relevance
+- Higher voucher redemption and conversion rates
+- Reduced wasted marketing spend
 
 Example targeting:
-- Users who recently bought flight tickets  
-- Users who frequently dine nearby  
-- Users visiting competitor stores  
+- Users currently paying for dinner near your dessert shop
+- Users who just booked a flight to your hotel's city
+- Users with a routine shopping habit at a nearby competitor
 
 ---
 
 ## Key Insight
 
-This system transforms the miniapp ecosystem from a passive marketplace into an intelligent, context-driven platform.
+This system transforms the miniapp deal ecosystem from a passive marketplace into an intelligent, context-driven platform that understands **not just what to recommend, but when to recommend it**.
 
 Instead of:
-> Users searching for miniapps
+> Users searching for deals and vouchers
 
 It becomes:
-> Miniapps automatically appearing when users need them
+> Deals automatically appearing at the right moment — during payment for impulse-ready offers, and after payment for decisions that need thought
 
 ---
 
 ## One-Line Summary
 
-We turn siloed transaction data into real-time, AI-driven engagement—where miniapps intelligently find users at the right moment.
+We turn siloed transaction data into real-time, AI-driven deal delivery—where miniapp vouchers and recommendations intelligently find users at the right moment, whether during or after payment.
