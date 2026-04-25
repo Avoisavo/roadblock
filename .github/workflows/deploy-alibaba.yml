@@ -52,7 +52,8 @@ jobs:
           username: ${{ secrets.ALIBABA_USER }}
           key: ${{ secrets.ALIBABA_SSH_KEY }}
           source: "alibaba/main.py"
-          target: "/root/main.py"
+          target: "/root"
+          strip_components: 1
           overwrite: true
 
       - name: Restart roadblock-worker service
