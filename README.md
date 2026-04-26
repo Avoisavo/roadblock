@@ -105,6 +105,8 @@ No manual search required.
 
 ## Benefits
 
+<img width="763" height="402" alt="Screenshot 2026-04-26 at 9 07 10 AM" src="https://github.com/user-attachments/assets/e5ff84be-e02b-497e-8ab1-cd1b6679ba2b" />
+
 ### For Users
 
 - Seamless experience — relevant deals appear automatically without searching or browsing
