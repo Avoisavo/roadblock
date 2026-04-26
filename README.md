@@ -1,4 +1,6 @@
-<img width="736" height="183" alt="Screenshot 2026-04-26 at 8 51 31 AM" src="https://github.com/user-attachments/assets/5b0bae76-2042-40b5-af23-d70ed72b80bd" />
+<p align="center">
+  <img width="736" height="183" alt="Screenshot 2026-04-26 at 8 51 31 AM" src="https://github.com/user-attachments/assets/5b0bae76-2042-40b5-af23-d70ed72b80bd" />
+</p>
 
 # AI-Powered Miniapp Intelligence Layer
 
@@ -32,7 +34,11 @@ Where deals no longer wait to be discovered, but instead find the user when they
 ---
 
 ## Implementation
-<img width="396" height="287" alt="Screenshot 2026-04-26 at 9 03 55 AM" src="https://github.com/user-attachments/assets/18dc19bc-e838-411f-9d97-fc77bb466d1a" /> <img width="337" height="294" alt="Screenshot 2026-04-26 at 9 04 06 AM" src="https://github.com/user-attachments/assets/7950a4b6-8d39-49ca-ad73-896b68abc18a" />
+
+<p align="center">
+  <img width="396" height="287" alt="Screenshot 2026-04-26 at 9 03 55 AM" src="https://github.com/user-attachments/assets/18dc19bc-e838-411f-9d97-fc77bb466d1a" />
+  <img width="337" height="294" alt="Screenshot 2026-04-26 at 9 04 06 AM" src="https://github.com/user-attachments/assets/7950a4b6-8d39-49ca-ad73-896b68abc18a" />
+</p>
 
 The system is designed as a real-time pipeline that converts raw transaction data into actionable deal delivery.
 
@@ -101,11 +107,15 @@ No manual search required.
 
 ---
 
-<img width="811" height="453" alt="Screenshot 2026-04-26 at 8 58 56 AM" src="https://github.com/user-attachments/assets/803ab57e-3851-4a05-b11f-5ae29e74027c" />
+<p align="center">
+  <img width="811" height="453" alt="Screenshot 2026-04-26 at 8 58 56 AM" src="https://github.com/user-attachments/assets/803ab57e-3851-4a05-b11f-5ae29e74027c" />
+</p>
 
 ## Benefits
 
-<img width="763" height="402" alt="Screenshot 2026-04-26 at 9 07 10 AM" src="https://github.com/user-attachments/assets/e5ff84be-e02b-497e-8ab1-cd1b6679ba2b" />
+<p align="center">
+  <img width="763" height="402" alt="Screenshot 2026-04-26 at 9 07 10 AM" src="https://github.com/user-attachments/assets/e5ff84be-e02b-497e-8ab1-cd1b6679ba2b" />
+</p>
 
 ### For Users
 
