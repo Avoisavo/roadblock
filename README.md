@@ -35,10 +35,16 @@ Where deals no longer wait to be discovered, but instead find the user when they
 
 ## Implementation
 
-<p align="center">
-  <img width="396" height="287" alt="Screenshot 2026-04-26 at 9 03 55 AM" src="https://github.com/user-attachments/assets/18dc19bc-e838-411f-9d97-fc77bb466d1a" />
-  <img width="337" height="294" alt="Screenshot 2026-04-26 at 9 04 06 AM" src="https://github.com/user-attachments/assets/7950a4b6-8d39-49ca-ad73-896b68abc18a" />
-</p>
+<table>
+  <tr>
+    <td align="center" width="50%">
+      <img width="396" height="287" alt="Screenshot 2026-04-26 at 9 03 55 AM" src="https://github.com/user-attachments/assets/18dc19bc-e838-411f-9d97-fc77bb466d1a" />
+    </td>
+    <td align="center" width="50%">
+      <img width="337" height="294" alt="Screenshot 2026-04-26 at 9 04 06 AM" src="https://github.com/user-attachments/assets/7950a4b6-8d39-49ca-ad73-896b68abc18a" />
+    </td>
+  </tr>
+</table>
 
 The system is designed as a real-time pipeline that converts raw transaction data into actionable deal delivery.
 
