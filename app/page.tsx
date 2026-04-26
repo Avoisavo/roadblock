@@ -1,6 +1,6 @@
 "use client";
 
-import { type ChangeEvent, type ReactNode, useEffect, useRef, useState } from "react";
+import { type ChangeEvent, type ReactNode, useCallback, useEffect, useRef, useState } from "react";
 
 type IconName =
   | "goal-city"
@@ -34,6 +34,23 @@ type IconName =
   | "fuel-pump";
 
 type PaymentVariant = "standard" | "travel";
+
+type DetectedBarcode = {
+  rawValue: string;
+  format: string;
+};
+
+type BarcodeDetectorInstance = {
+  detect: (source: CanvasImageSource) => Promise<DetectedBarcode[]>;
+};
+
+type BarcodeDetectorConstructor = new (options?: {
+  formats?: string[];
+}) => BarcodeDetectorInstance;
+
+type WindowWithBarcodeDetector = Window & {
+  BarcodeDetector?: BarcodeDetectorConstructor;
+};
 
 type Recommendation = {
   id: string;
@@ -662,15 +679,27 @@ function HomeScreen({
 function ScanScreen({
   onBack,
   onScanComplete,
+  nextPaymentVariant,
 }: {
   onBack: () => void;
   onScanComplete: (variant: PaymentVariant) => void;
+  nextPaymentVariant: PaymentVariant;
 }) {
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const completedScanRef = useRef(false);
   const [cameraState, setCameraState] = useState<
     "idle" | "ready" | "unsupported" | "denied" | "error"
   >("idle");
+
+  const completeQrScan = useCallback(() => {
+    if (completedScanRef.current) {
+      return;
+    }
+
+    completedScanRef.current = true;
+    onScanComplete(nextPaymentVariant);
+  }, [nextPaymentVariant, onScanComplete]);
 
   useEffect(() => {
     let activeStream: MediaStream | null = null;
@@ -725,31 +754,91 @@ function ScanScreen({
   }, []);
 
   useEffect(() => {
-    function handleKeyDown(event: KeyboardEvent) {
-      if (event.key === "Enter") {
-        onScanComplete("standard");
-      }
-
-      if (event.key === " " || event.code === "Space") {
-        event.preventDefault();
-        onScanComplete("travel");
-      }
+    if (cameraState !== "ready") {
+      return;
     }
 
-    window.addEventListener("keydown", handleKeyDown);
+    const BarcodeDetector =
+      (window as WindowWithBarcodeDetector).BarcodeDetector;
+
+    if (!BarcodeDetector) {
+      return;
+    }
+
+    const detector = new BarcodeDetector({ formats: ["qr_code"] });
+    let animationFrame = 0;
+    let cancelled = false;
+
+    async function detectQrCode() {
+      if (cancelled || completedScanRef.current) {
+        return;
+      }
+
+      const videoElement = videoRef.current;
+
+      if (
+        videoElement &&
+        videoElement.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA &&
+        videoElement.videoWidth > 0 &&
+        videoElement.videoHeight > 0
+      ) {
+        try {
+          const barcodes = await detector.detect(videoElement);
+          const hasQrCode = barcodes.some((barcode) => {
+            return barcode.format === "qr_code" || barcode.rawValue.length > 0;
+          });
+
+          if (hasQrCode) {
+            completeQrScan();
+            return;
+          }
+        } catch {
+          // Some browsers expose BarcodeDetector but reject video sources.
+        }
+      }
+
+      animationFrame = window.requestAnimationFrame(detectQrCode);
+    }
+
+    animationFrame = window.requestAnimationFrame(detectQrCode);
 
     return () => {
-      window.removeEventListener("keydown", handleKeyDown);
+      cancelled = true;
+      window.cancelAnimationFrame(animationFrame);
     };
-  }, [onScanComplete]);
+  }, [cameraState, completeQrScan]);
 
   function openGallery() {
     fileInputRef.current?.click();
   }
 
-  function handleGalleryPick(event: ChangeEvent<HTMLInputElement>) {
-    if (event.target.files?.length) {
-      setCameraState("ready");
+  async function handleGalleryPick(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+
+    if (!file) {
+      return;
+    }
+
+    setCameraState("ready");
+
+    const BarcodeDetector =
+      (window as WindowWithBarcodeDetector).BarcodeDetector;
+
+    if (!BarcodeDetector) {
+      return;
+    }
+
+    try {
+      const image = await createImageBitmap(file);
+      const detector = new BarcodeDetector({ formats: ["qr_code"] });
+      const barcodes = await detector.detect(image);
+      image.close();
+
+      if (barcodes.some((barcode) => barcode.format === "qr_code" || barcode.rawValue.length > 0)) {
+        completeQrScan();
+      }
+    } catch {
+      // Keep the scanner open if the selected image cannot be decoded.
     }
   }
 
@@ -852,20 +941,6 @@ function PayScreen({
   const hasEnoughBalance = balanceAfterPayment >= 0;
   const formattedAddOnTotal = `RM ${addOnTotal.toFixed(2)}`;
   const formattedTotalAmount = `RM ${totalAmount.toFixed(2)}`;
-
-  useEffect(() => {
-    function handleKeyDown(event: KeyboardEvent) {
-      if (event.key === "Enter" && hasEnoughBalance) {
-        onConfirm(totalAmount);
-      }
-    }
-
-    window.addEventListener("keydown", handleKeyDown);
-
-    return () => {
-      window.removeEventListener("keydown", handleKeyDown);
-    };
-  }, [hasEnoughBalance, onConfirm, totalAmount]);
 
   return (
     <div
@@ -1674,9 +1749,11 @@ function DetailRow({
 export default function Home() {
   const [mode, setMode] = useState<"home" | "scan" | "pay" | "receipt" | "travel" | "transport">("home");
   const [paymentVariant, setPaymentVariant] = useState<PaymentVariant>("standard");
+  const [qrPaymentStep, setQrPaymentStep] = useState(0);
   const [accountBalance, setAccountBalance] = useState<number>(INITIAL_ACCOUNT_BALANCE);
   const [receiptTotalAmount, setReceiptTotalAmount] = useState<number>(paymentConfigs.standard.merchantAmount);
   const [receiptBalanceAmount, setReceiptBalanceAmount] = useState<number>(INITIAL_ACCOUNT_BALANCE);
+  const nextPaymentVariant: PaymentVariant = qrPaymentStep === 0 ? "standard" : "travel";
 
   return (
     <main className="app-stage">
@@ -1686,8 +1763,10 @@ export default function Home() {
       {mode === "scan" ? (
         <ScanScreen
           onBack={() => setMode("home")}
+          nextPaymentVariant={nextPaymentVariant}
           onScanComplete={(variant) => {
             setPaymentVariant(variant);
+            setQrPaymentStep(1);
             setMode("pay");
           }}
         />
