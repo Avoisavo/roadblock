@@ -1,4 +1,5 @@
 <img width="736" height="183" alt="Screenshot 2026-04-26 at 8 51 31 AM" src="https://github.com/user-attachments/assets/5b0bae76-2042-40b5-af23-d70ed72b80bd" />
+
 # AI-Powered Miniapp Intelligence Layer
 
 ## Problem Statement
