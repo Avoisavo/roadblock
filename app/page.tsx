@@ -81,6 +81,12 @@ const quickActions = [
   { icon: "cards", label: "Cards" },
 ] as const;
 
+const INITIAL_ACCOUNT_BALANCE = 500;
+
+function formatCurrency(amount: number) {
+  return `RM ${amount.toFixed(2)}`;
+}
+
 const paymentConfigs: Record<PaymentVariant, PaymentConfig> = {
   standard: {
     merchantAmount: 45,
@@ -499,7 +505,7 @@ function BottomNav({ onScan }: { onScan: () => void }) {
   );
 }
 
-function WalletHero() {
+function WalletHero({ accountBalance }: { accountBalance: number }) {
   return (
     <section className="wallet-shell">
       <div className="wallet-hero">
@@ -507,7 +513,7 @@ function WalletHero() {
         <TopSearch />
         <div className="balance-row">
           <span className="shield"><Icon name="shield" className="icon-svg" /></span>
-          <strong>RM 90.92</strong>
+          <strong>{formatCurrency(accountBalance)}</strong>
           <span className="eye"><Icon name="eye" className="icon-svg" /></span>
         </div>
         <div className="asset-link">View asset details ›</div>
@@ -528,11 +534,17 @@ function WalletHero() {
   );
 }
 
-function HomeScreen({ onScan }: { onScan: () => void }) {
+function HomeScreen({
+  accountBalance,
+  onScan,
+}: {
+  accountBalance: number;
+  onScan: () => void;
+}) {
   return (
     <div className="phone home-phone">
       <div className="home-scroll">
-        <WalletHero />
+        <WalletHero accountBalance={accountBalance} />
         <main className="home-content">
           <section className="info-grid">
             <div className="mini-card grow">
@@ -816,10 +828,12 @@ function ScanScreen({
 
 function PayScreen({
   variant,
+  accountBalance,
   onBack,
   onConfirm,
 }: {
   variant: PaymentVariant;
+  accountBalance: number;
   onBack: () => void;
   onConfirm: (totalAmount: number) => void;
 }) {
@@ -834,12 +848,14 @@ function PayScreen({
     return total + Number(deal.promoPrice.replace(/[^\d.]/g, ""));
   }, 0);
   const totalAmount = config.merchantAmount + addOnTotal;
+  const balanceAfterPayment = accountBalance - totalAmount;
+  const hasEnoughBalance = balanceAfterPayment >= 0;
   const formattedAddOnTotal = `RM ${addOnTotal.toFixed(2)}`;
   const formattedTotalAmount = `RM ${totalAmount.toFixed(2)}`;
 
   useEffect(() => {
     function handleKeyDown(event: KeyboardEvent) {
-      if (event.key === "Enter") {
+      if (event.key === "Enter" && hasEnoughBalance) {
         onConfirm(totalAmount);
       }
     }
@@ -849,7 +865,7 @@ function PayScreen({
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
     };
-  }, [onConfirm, totalAmount]);
+  }, [hasEnoughBalance, onConfirm, totalAmount]);
 
   return (
     <div
@@ -1064,10 +1080,15 @@ function PayScreen({
           </div>
           <button
             type="button"
-            onClick={() => onConfirm(totalAmount)}
-            className="h-[39px] w-full rounded-full bg-[#066cff] text-[15px] font-bold tracking-[1.6px] text-white shadow-[0_1px_3px_rgba(0,82,190,0.32)]"
+            onClick={() => {
+              if (hasEnoughBalance) {
+                onConfirm(totalAmount);
+              }
+            }}
+            disabled={!hasEnoughBalance}
+            className="h-[39px] w-full rounded-full bg-[#066cff] text-[15px] font-bold tracking-[1.6px] text-white shadow-[0_1px_3px_rgba(0,82,190,0.32)] disabled:bg-[#aab2c0] disabled:shadow-none"
           >
-            Pay {formattedTotalAmount}
+            {hasEnoughBalance ? `Pay ${formattedTotalAmount}` : "Insufficient Balance"}
           </button>
         </div>
       </section>
@@ -1078,12 +1099,14 @@ function PayScreen({
 function ReceiptScreen({
   variant,
   totalAmount,
+  accountBalance,
   onDone,
   onExploreTravel,
   onGrabTransport,
 }: {
   variant: PaymentVariant;
   totalAmount: number;
+  accountBalance: number;
   onDone: () => void;
   onExploreTravel: () => void;
   onGrabTransport: () => void;
@@ -1153,6 +1176,7 @@ function ReceiptScreen({
           wrap
         />
         <DetailRow label="Payment Method" value="eWallet Balance" />
+        <DetailRow label="Balance After Payment" value={formatCurrency(accountBalance)} />
       </div>
 
       <div className={`mt-[27px] grid min-h-[104px] grid-cols-[132px_1fr] gap-3 overflow-hidden rounded-[14px] px-3 py-3 ${receiptPromo.cardClassName}`}>
@@ -1650,12 +1674,14 @@ function DetailRow({
 export default function Home() {
   const [mode, setMode] = useState<"home" | "scan" | "pay" | "receipt" | "travel" | "transport">("home");
   const [paymentVariant, setPaymentVariant] = useState<PaymentVariant>("standard");
+  const [accountBalance, setAccountBalance] = useState<number>(INITIAL_ACCOUNT_BALANCE);
   const [receiptTotalAmount, setReceiptTotalAmount] = useState<number>(paymentConfigs.standard.merchantAmount);
+  const [receiptBalanceAmount, setReceiptBalanceAmount] = useState<number>(INITIAL_ACCOUNT_BALANCE);
 
   return (
     <main className="app-stage">
       {mode === "home" ? (
-        <HomeScreen onScan={() => setMode("scan")} />
+        <HomeScreen accountBalance={accountBalance} onScan={() => setMode("scan")} />
       ) : null}
       {mode === "scan" ? (
         <ScanScreen
@@ -1669,9 +1695,17 @@ export default function Home() {
       {mode === "pay" ? (
         <PayScreen
           variant={paymentVariant}
+          accountBalance={accountBalance}
           onBack={() => setMode("scan")}
           onConfirm={(totalAmount) => {
+            const nextBalance = accountBalance - totalAmount;
+            if (nextBalance < 0) {
+              return;
+            }
+
+            setAccountBalance(nextBalance);
             setReceiptTotalAmount(totalAmount);
+            setReceiptBalanceAmount(nextBalance);
             setMode("receipt");
           }}
         />
@@ -1680,6 +1714,7 @@ export default function Home() {
         <ReceiptScreen
           variant={paymentVariant}
           totalAmount={receiptTotalAmount}
+          accountBalance={receiptBalanceAmount}
           onDone={() => setMode("home")}
           onExploreTravel={() => setMode("travel")}
           onGrabTransport={() => setMode("transport")}
