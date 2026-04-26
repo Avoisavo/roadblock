@@ -98,51 +98,6 @@ No manual search required.
 
 ---
 
-## User Flow
-
-### Scenario 1: Dinner at a Mall → Dessert Voucher (During Payment)
-
-1. User is at a mall and pays for dinner at a restaurant
-2. System detects:
-   - Location: Mid Valley Megamall
-   - Category: Dining (Dinner)
-   - Behavior: User frequently buys dessert after dinner (75% of the time)
-   - Nearby merchants: Llaollao is 2 minutes away
-
-3. **During the payment screen**, a deal is shown:
-
-👉 "Craving dessert? Here's 20% off Llaollao — just around the corner 🍦"
-
-4. User taps to claim the voucher and uses it immediately after dinner
-
----
-
-### Scenario 2: Flight Ticket → Travel Essentials (After Payment)
-
-1. User purchases a flight ticket to Tokyo
-2. System detects travel intent and destination
-3. **After payment is completed**, the system surfaces:
-
-- 🏨 Hotel booking deals in Tokyo
-- 🚗 Car rental offers at destination
-- 📱 Japan eSIM data plans
-
-👉 "Planning your Tokyo trip? Here are deals to get you sorted."
-
-4. These appear on the post-payment screen and are saved in-app for later — because booking a hotel or buying an eSIM is a bigger decision that needs consideration
-
----
-
-### Scenario 3: Weekly Groceries → Instant Cashback (During Payment)
-
-1. User shops at the same supermarket every Saturday
-2. System learns the routine pattern
-3. **During payment**, a voucher is shown:
-
-👉 "Your weekly shop? Here's RM5 cashback on orders above RM80 — applied automatically 🛒"
-
----
-
 ## Benefits
 
 ### For Users
